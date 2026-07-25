@@ -1,0 +1,124 @@
+services:
+  kafka:
+    image: apache/kafka:3.7.0
+    restart: unless-stopped
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT_INTERNAL://:9092,PLAINTEXT_HOST://:9094,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - kafka_data:/tmp/kraft-combined-logs
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.11
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  producer:
+    build: ./services/producer
+    restart: on-failure
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      BINANCE_SYMBOL: ${BINANCE_SYMBOL}
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  processor:
+    build: ./services/processor
+    restart: on-failure
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  sink:
+    build: ./services/sink
+    restart: on-failure
+    depends_on:
+      kafka:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    environment:
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  kafka_data:
+  clickhouse_data:
+  grafana_data:
