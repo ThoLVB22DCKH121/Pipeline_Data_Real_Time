@@ -1,6 +1,6 @@
 # 📈 Real-time Crypto Trading Pipeline
 
-[![CI](https://github.com/YOUR_USERNAME/finance-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/finance-pipeline/actions/workflows/ci.yml)
+[![CI](https://github.com/ThoLVB22DCKH121/finance-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/ThoLVB22DCKH121/finance-pipeline/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Apache_Kafka-3.7_(KRaft)-231F20?logo=apachekafka&logoColor=white)
 ![ClickHouse](https://img.shields.io/badge/ClickHouse-24.11-FFCC01?logo=clickhouse&logoColor=black)
@@ -12,30 +12,54 @@ Hệ thống **data pipeline real-time** hoàn chỉnh từ đầu đến cuối
 
 ## 🏗️ Kiến trúc hệ thống
 
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         Docker Compose (7 services)                         │
-│                                                                              │
-│  ┌─────────┐    ┌───────────────┐    ┌───────────┐    ┌───────────────┐      │
-│  │ Binance  │───▶│   Producer    │───▶│   Kafka   │───▶│  Processor    │      │
-│  │WebSocket │    │  (Ingestor)   │    │trades.raw │    │   (ETL)       │      │
-│  └─────────┘    └───────────────┘    └───────────┘    └──────┬────────┘      │
-│                                                              │               │
-│                                            ┌─────────────────▼──────┐        │
-│                                            │        Kafka           │        │
-│                                            │   trades.enriched      │        │
-│                                            └─────────┬──────────────┘        │
-│                                                      │                       │
-│                                            ┌─────────▼──────────────┐        │
-│  ┌──────────┐    ┌────────────┐            │     Sink               │        │
-│  │ Grafana  │◀───│ Prometheus │◀── metrics │  (Micro-batch Writer)  │        │
-│  │Dashboard │    │  Scraper   │            └─────────┬──────────────┘        │
-│  └──────────┘    └────────────┘                      │                       │
-│                                            ┌─────────▼──────────────┐        │
-│         trades.dlq ◀── failed messages ────│     ClickHouse         │        │
-│       (Dead Letter)                        │   (OLAP Analytics)     │        │
-│                                            └────────────────────────┘        │
-└──────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph External ["🌐 External"]
+        B["Binance WebSocket"]
+    end
+
+    subgraph Docker ["🐳 Docker Compose Network (7 Services)"]
+        
+        subgraph Ingestion ["📥 Ingestion Layer"]
+            P["Producer (Python)"]
+        end
+        
+        subgraph Broker ["⚡ Message Broker (Kafka KRaft)"]
+            K_RAW[("trades.raw")]
+            K_ENRICHED[("trades.enriched")]
+            K_DLQ[("trades.dlq")]
+        end
+        
+        subgraph Process ["⚙️ Processing Layer"]
+            PR["Processor (ETL)"]
+        end
+        
+        subgraph Storage ["💾 Storage Layer"]
+            S["Sink (Micro-batch Writer)"]
+            CH[("ClickHouse (OLAP)")]
+        end
+        
+        subgraph Obs ["📊 Observability"]
+            PROM(("Prometheus"))
+            GRAF["Grafana Dashboard"]
+        end
+
+        %% Data Flow
+        B ===>|Live Trades| P
+        P ===>|Produce| K_RAW
+        K_RAW ===>|Consume| PR
+        PR ===>|Enrich & Validate| K_ENRICHED
+        PR -.->|Invalid JSON/Fields| K_DLQ
+        K_ENRICHED ===>|Consume| S
+        S -.->|Write Error| K_DLQ
+        S ===>|Insert Batch| CH
+        
+        %% Metrics Flow
+        P -.->|/metrics| PROM
+        PR -.->|/metrics| PROM
+        S -.->|/metrics| PROM
+        PROM --->|Datasource| GRAF
+    end
 ```
 
 ### Luồng dữ liệu
