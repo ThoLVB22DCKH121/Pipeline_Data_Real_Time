@@ -1,6 +1,6 @@
 # 📈 Real-time Crypto Trading Pipeline
 
-[![CI](https://github.com/ThoLVB22DCKH121/finance-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/ThoLVB22DCKH121/finance-pipeline/actions/workflows/ci.yml)
+![CI](https://github.com/ThoLVB22DCKH121/finance-pipeline/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Kafka](https://img.shields.io/badge/Apache_Kafka-3.7_(KRaft)-231F20?logo=apachekafka&logoColor=white)
 ![ClickHouse](https://img.shields.io/badge/ClickHouse-24.11-FFCC01?logo=clickhouse&logoColor=black)

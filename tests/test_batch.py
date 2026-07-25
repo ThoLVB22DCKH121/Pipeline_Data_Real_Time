@@ -4,11 +4,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "services", "sink"))
 
 # pyrefly: ignore [missing-import]
-from batch import build_rows        
+from batch import build_rows
 
 
 class TestBuildRows:
     def test_single_record(self):
+        """Kiểm tra chuyển đổi một bản ghi duy nhất thành một dòng (row) hợp lệ."""
         buffer = [
             {"s": "BTCUSDT", "p": "50000", "q": "0.5", "notional_value": 25000.0, "T": 1700000000000}
         ]
@@ -18,6 +19,7 @@ class TestBuildRows:
         assert rows[0] == ["BTCUSDT", 50000.0, 0.5, 25000.0, 1700000000000]
 
     def test_multiple_records(self):
+        """Kiểm tra chuyển đổi danh sách nhiều bản ghi thành nhiều dòng tương ứng."""
         buffer = [
             {"s": "BTCUSDT", "p": "50000", "q": "0.5", "notional_value": 25000.0, "T": 100},
             {"s": "ETHUSDT", "p": "3000", "q": "2.0", "notional_value": 6000.0, "T": 200},
@@ -31,9 +33,11 @@ class TestBuildRows:
         assert rows[2][0] == "BNBUSDT"
 
     def test_empty_buffer(self):
+        """Kiểm tra xử lý danh sách rỗng, phải trả về một mảng rỗng mà không gây lỗi."""
         assert build_rows([]) == []
 
     def test_string_price_converted_to_float(self):
+        """Kiểm tra tự động ép kiểu các giá trị chuỗi (string) thành số thực (float)."""
         buffer = [
             {"s": "BTCUSDT", "p": "50000.123", "q": "0.5", "notional_value": 25000.0, "T": 100}
         ]
@@ -43,7 +47,7 @@ class TestBuildRows:
         assert rows[0][1] == 50000.123
 
     def test_column_order(self):
-        """Verify column order matches ClickHouse schema: symbol, price, quantity, notional_value, trade_time_ms"""
+        """Kiểm tra thứ tự các cột được tạo ra phải khớp với schema bảng trades trong ClickHouse."""
         buffer = [
             {"s": "BTCUSDT", "p": "50000", "q": "0.5", "notional_value": 25000.0, "T": 999}
         ]

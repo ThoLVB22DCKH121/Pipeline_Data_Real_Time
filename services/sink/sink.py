@@ -5,6 +5,7 @@ import signal
 import time
 
 import clickhouse_connect
+
 # pyrefly: ignore [missing-import]
 from batch import build_rows
 from confluent_kafka import Consumer, Producer
