@@ -33,8 +33,10 @@ graph TD
     
     H[Apache Airflow] -.->|Schedule & Trigger| Transformation
     
-    F -->|Query| I[Grafana Dashboard]
-    G -->|Query| I
+    subgraph System Monitoring [Monitoring & Observability]
+        I[Prometheus] -->|Scrape Metrics| Data_Ingestion
+        J[Grafana] -->|Visualize Metrics| I
+    end
     
     style A fill:#3776AB,stroke:#fff,color:#fff
     style B fill:#000,stroke:#fff,color:#fff
@@ -43,17 +45,17 @@ graph TD
     style F fill:#FFCC01,stroke:#fff,color:#000
     style G fill:#FFCC01,stroke:#fff,color:#000
     style H fill:#017CEE,stroke:#fff,color:#fff
-    style I fill:#F46800,stroke:#fff,color:#fff
+    style I fill:#E6522C,stroke:#fff,color:#fff
+    style J fill:#F46800,stroke:#fff,color:#fff
 ```
 
 ### 🧩 Các thành phần cốt lõi:
 1. **Source**: Trình mô phỏng (Mock Data Generator) tạo luồng dữ liệu giả lập giống API của Binance.
 2. **Streaming Bus**: Apache Kafka (Lưu trữ đệm luồng dữ liệu thô với độ trễ thấp).
-3. **Data Warehouse**: ClickHouse (Lưu trữ cột và phân tích OLAP siêu tốc).
-4. **Data Transformation**: dbt (Data Build Tool) chuẩn hóa và tổng hợp dữ liệu (Tạo bảng OHLC và báo cáo tổng quan).
+3. **Data Warehouse**: ClickHouse (Lưu trữ cột, là điểm đến cuối cùng chứa dữ liệu đã được làm sạch và tổng hợp).
+4. **Data Transformation**: dbt (Data Build Tool) chuẩn hóa và tổng hợp dữ liệu trong ClickHouse.
 5. **Orchestration**: Apache Airflow (Lên lịch và kích hoạt các dbt pipelines).
-6. **Visualization**: Grafana (Bảng điều khiển trực quan dành cho người dùng và kỹ sư).
-7. **Monitoring**: Prometheus (Thu thập metrics và theo dõi sức khỏe hệ thống).
+6. **Monitoring**: Prometheus (Thu thập metrics) & Grafana (Theo dõi sức khỏe hệ thống, băng thông Kafka, v.v.).
 
 ---
 
@@ -122,11 +124,8 @@ Khi mọi thứ đã `Running`, bạn có thể kiểm tra hệ thống qua các
 
 | Dịch vụ | URL | Đăng nhập (Mặc định) | Ghi chú |
 |---------|-----|----------------------|---------|
-| **Grafana** (Visualization) | [http://localhost:3000](http://localhost:3000) | `admin` / `admin` | Vẽ biểu đồ tài chính, giám sát hệ thống |
+| **Grafana** (Monitoring) | [http://localhost:3000](http://localhost:3000) | `admin` / `admin` | Giám sát sức khỏe hệ thống (Kafka throughput, Node metrics) |
 | **Apache Airflow** (Orchestration)| [http://localhost:8080](http://localhost:8080) | `admin` / `admin` | Kích hoạt và theo dõi tiến trình dbt |
 | **Prometheus** (Monitoring) | [http://localhost:9090](http://localhost:9090) | *(Không yêu cầu)* | Viết câu lệnh PromQL để xem Metrics |
 
 ---
-
-## 🧑‍💻 Tác giả
-*Phát triển bởi [Tên của Bạn] - Kỹ sư Dữ liệu (Data Engineer)*

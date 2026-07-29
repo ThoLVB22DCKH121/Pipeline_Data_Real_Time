@@ -3,6 +3,8 @@
 with source as (
     select * from `default`.`stg_trades`
     
+    where trade_date >= (select max(trade_date) from `default`.`daily_summary`)
+    
 )
 
 select
