@@ -28,3 +28,15 @@ Thumbs.db
 
 # Docker
 *.log
+
+# dbt (Data Build Tool)
+dbt/finance_project/target/
+dbt/finance_project/dbt_packages/
+dbt/finance_project/logs/
+*.parquet
+
+# Data & Config (to prevent accidental commits)
+/data/
+*.csv
+*.db
+*.sqlite3

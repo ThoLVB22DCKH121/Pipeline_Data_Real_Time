@@ -10,6 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY processor.py transform.py ./
+COPY config.py producer.py main.py ./
 
-CMD ["python", "processor.py"]
+CMD ["python", "main.py"]

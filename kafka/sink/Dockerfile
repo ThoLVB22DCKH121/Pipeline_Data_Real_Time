@@ -10,6 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY sink.py batch.py ./
+COPY config.py batch.py sink.py main.py ./
 
-CMD ["python", "sink.py"]
+CMD ["python", "main.py"]

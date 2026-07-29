@@ -52,7 +52,7 @@ services:
           memory: 1G
 
   producer:
-    build: ./services/producer
+    build: ./kafka/producer
     restart: on-failure
     depends_on:
       kafka:
@@ -65,7 +65,7 @@ services:
           memory: 256M
 
   processor:
-    build: ./services/processor
+    build: ./kafka/processor
     restart: on-failure
     depends_on:
       kafka:
@@ -76,7 +76,7 @@ services:
           memory: 256M
 
   sink:
-    build: ./services/sink
+    build: ./kafka/sink
     restart: on-failure
     depends_on:
       kafka:
@@ -117,6 +117,35 @@ services:
       resources:
         limits:
           memory: 256M
+  
+  airflow-db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+
+  airflow:
+    build: ./airflow
+    depends_on:
+      - airflow-db
+      - kafka
+      - clickhouse
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./dbt/finance_project:/opt/dbt/project
+    command: >
+      bash -c "airflow db init &&
+               airflow users create --username admin --password admin --firstname A --lastname B --role Admin --email admin@example.com &&
+               (airflow scheduler &) &&
+               airflow webserver"
 
 volumes:
   kafka_data:
