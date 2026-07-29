@@ -1,10 +1,12 @@
 import json
 import logging
 import time
+
 # pyrefly: ignore [missing-import]
 from config import KAFKA_TOPIC_DLQ, KAFKA_TOPIC_ENRICHED
 from confluent_kafka import Consumer, Producer
 from prometheus_client import Counter
+
 # pyrefly: ignore [missing-import]
 from transform import enrich_trade
 

@@ -1,11 +1,11 @@
-from datetime import datetime, timedelta
 import os
+from datetime import datetime, timedelta
 
-# pyrefly: ignore [missing-import]
-from airflow import DAG
 # pyrefly: ignore [missing-import]
 from airflow.operators.bash import BashOperator
 
+# pyrefly: ignore [missing-import]
+from airflow import DAG
 
 default_args = {
     "retries": 2,

@@ -1,1 +1,0 @@
-{"_invocation_id": "cde7d702-7fae-432c-939c-d1aca6d8e76e", "linked": {"0": {"name": "model.finance_pipeline.daily_ohlc", "type": "model"}, "1": {"name": "model.finance_pipeline.stg_trades", "type": "model", "succ": [0, 2]}, "2": {"name": "model.finance_pipeline.daily_summary", "type": "model"}}}

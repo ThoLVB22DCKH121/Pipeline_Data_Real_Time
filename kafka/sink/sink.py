@@ -4,6 +4,7 @@ import time
 
 # pyrefly: ignore [missing-import]
 from batch import build_rows
+
 # pyrefly: ignore [missing-import]
 from config import (
     BATCH_SIZE,

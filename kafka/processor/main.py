@@ -10,6 +10,7 @@ import signal
 # pyrefly: ignore [missing-import]
 from config import KAFKA_BOOTSTRAP, KAFKA_CONSUMER_GROUP, KAFKA_TOPIC_RAW, METRICS_PORT
 from confluent_kafka import Consumer, Producer
+
 # pyrefly: ignore [missing-import]
 from processor import process_loop
 from prometheus_client import start_http_server

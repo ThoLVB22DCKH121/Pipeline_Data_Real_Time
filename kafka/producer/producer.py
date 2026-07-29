@@ -3,6 +3,7 @@ import json
 import logging
 
 import websockets
+
 # pyrefly: ignore [missing-import]
 from config import (
     BASE_DELAY,

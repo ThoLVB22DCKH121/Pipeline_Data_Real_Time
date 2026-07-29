@@ -11,6 +11,7 @@ import signal
 # pyrefly: ignore [missing-import]
 from config import KAFKA_BOOTSTRAP, METRICS_PORT
 from confluent_kafka import Producer
+
 # pyrefly: ignore [missing-import]
 from producer import stream_trades
 from prometheus_client import start_http_server

@@ -8,6 +8,7 @@ import logging
 import signal
 
 import clickhouse_connect
+
 # pyrefly: ignore [missing-import]
 from config import (
     CLICKHOUSE_HOST,
@@ -22,6 +23,7 @@ from config import (
 )
 from confluent_kafka import Consumer, Producer
 from prometheus_client import start_http_server
+
 # pyrefly: ignore [missing-import]
 from sink import consume_loop
 

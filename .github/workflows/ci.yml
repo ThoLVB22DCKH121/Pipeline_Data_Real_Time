@@ -39,8 +39,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Producer
-        run: docker build -t producer ./services/producer
+        run: docker build -t producer ./kafka/producer
       - name: Build Processor
-        run: docker build -t processor ./services/processor
+        run: docker build -t processor ./kafka/processor
       - name: Build Sink
-        run: docker build -t sink ./services/sink
+        run: docker build -t sink ./kafka/sink
