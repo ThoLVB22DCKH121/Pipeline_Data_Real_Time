@@ -20,5 +20,5 @@ def test_enrich_trade():
     result = enrich_trade(mock_data)
 
     assert result["s"] == "BTCUSDT"
-    assert result["notional_value"] == 125000.00  # 50000 * 2.5
+    assert result["notional_value"] == 125000.00
     assert isinstance(result["notional_value"], float)

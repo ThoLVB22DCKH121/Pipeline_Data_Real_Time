@@ -59,6 +59,37 @@ graph TD
 
 ---
 
+## 📊 Phân tích và Giải nghĩa Dữ liệu (Data Analytics)
+
+Hệ thống của chúng ta thu thập và biến đổi dữ liệu qua 2 giai đoạn chính. Hiểu được dữ liệu giúp chúng ta đánh giá đúng giá trị nghiệp vụ (Business Value) của Pipeline này:
+
+### 1. Dữ liệu gốc từ API (Raw JSON Payload)
+Nguồn dữ liệu giả lập trả về chính xác cấu trúc luồng `@aggTrade` (Aggregated Trade) của sàn Binance qua WebSocket. Mỗi bản tin chứa các trường gốc (viết tắt để tối ưu băng thông):
+- `s` (Symbol): Cặp tiền điện tử (VD: *BTCUSDT*).
+- `p` (Price): Mức giá khớp lệnh.
+- `q` (Quantity): Số lượng coin giao dịch.
+- `T` (Timestamp): Thời gian khớp lệnh (tính bằng mili-giây).
+- `m` (Maker): Cờ boolean, bằng `true` nếu người mua là Market Maker.
+
+### 2. Dữ liệu làm giàu (Enriched Data - ClickHouse `trades`)
+Trước khi đưa vào Data Warehouse, các bản tin JSON lộn xộn đi qua **Kafka Processor** để được ép kiểu (Type casting) và "làm giàu" thêm dữ liệu nghiệp vụ:
+- `symbol` (từ trường `s`)
+- `price` (từ trường `p` ép sang Float)
+- `quantity` (từ trường `q` ép sang Float)
+- `notional_value` (= price * quantity): Tổng giá trị (Dollar value) của giao dịch.
+- `trade_time_ms` (từ trường `T`)
+
+### 3. Dữ liệu phân tích (Transformed Data - dbt `daily_ohlc`)
+Thay vì để Data Analyst phải viết các câu truy vấn phức tạp trên bảng `trades` thô khổng lồ, **dbt** đã tự động tổng hợp chúng thành biểu đồ nến OHLC (Open-High-Low-Close) theo từng ngày. Đây là dữ liệu nền tảng cho mọi hệ thống phân tích kỹ thuật (Technical Analysis) trong tài chính:
+- `open_price`: Giá của giao dịch đầu tiên trong ngày.
+- `high_price` / `low_price`: Mức giá cao nhất / thấp nhất trong ngày (thể hiện sự biến động - Volatility).
+- `close_price`: Giá của giao dịch cuối cùng trong ngày.
+- `total_volume` & `total_notional`: Tổng khối lượng và tổng giá trị giao dịch trong ngày (thể hiện tính thanh khoản - Liquidity).
+
+**💡 Ý nghĩa nghiệp vụ:** Pipeline này giúp các nhà phân tích định lượng (Quants) hoặc các thuật toán giao dịch (Trading Bots) có ngay tập dữ liệu sạch, đã được tổng hợp sẵn trong ClickHouse để đưa ra quyết định mua/bán ngay lập tức mà không bị độ trễ.
+
+---
+
 ## 🌟 Điểm nhấn Kỹ thuật (Highlight Features)
 
 - **Micro-batching tối ưu hóa cho ClickHouse:** Dữ liệu không được ghi từng dòng vào Database (tránh phá vỡ cơ chế `MergeTree`). Thay vào đó, Consumer gom dữ liệu thành các batch (Micro-batching) 500 dòng hoặc định kỳ lưu mỗi 2 giây/lần.
